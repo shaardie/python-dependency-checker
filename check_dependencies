@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+
+REQUIREMENTS="${REQUIREMENTS:-"requirements.txt"}"
+echo "Checking $REQUIREMENTS"
+
+VENV="${VENV:-}"
+if [ "$VENV" ]
+then
+    echo "Using virtual environment $VENV"
+else
+    TMPDIR="$(mktemp -d "$0.XXXX")"
+    function finish {
+        rm -r "$TMPDIR"
+    }
+    trap finish EXIT
+    VENV="$TMPDIR/venv"
+    python3 -m venv "$VENV"
+    echo "Using a temporary virtual environment $VENV"
+fi
+
+echo Installing depencencies
+"$VENV/bin/pip" install -r "$REQUIREMENTS"
+
+echo Check for outdated depencencies
+OUTPUT=$("$VENV/bin/pip" list --outdated | grep -v "^pip\|^setuptools")
+if [ "$OUTPUT" ]
+then
+    echo "There are updates available:"
+    echo "$OUTPUT"
+    exit 1
+fi
+
+echo 'Everything up to date :-)'
