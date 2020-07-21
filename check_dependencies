@@ -1,10 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
 set -o errexit
 set -o nounset
 
 REQUIREMENTS="${REQUIREMENTS:-"requirements.txt"}"
 echo "Checking $REQUIREMENTS"
+if ! [ -f "$REQUIREMENTS" ]
+then
+    echo "$REQUIREMENTS does not exist"
+    exit 1
+fi
 
 VENV="${VENV:-}"
 if [ "$VENV" ]
@@ -12,7 +17,7 @@ then
     echo "Using virtual environment $VENV"
 else
     TMPDIR="$(mktemp -d "$0.XXXX")"
-    function finish {
+    finish() {
         rm -r "$TMPDIR"
     }
     trap finish EXIT
